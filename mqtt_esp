@@ -1,0 +1,41 @@
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+
+const char* ssid = "Friday";
+const char* password = "Ideapad330";
+const char* mqtt_server = "192.168.0.135";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
+  client.setServer(mqtt_server, 1883);
+  while (!client.connected()) {
+    Serial.println("Connecting to MQTT broker...");
+    if (client.connect("NodeMCU-client")) {
+      Serial.println("Connected to MQTT broker");
+    } else {
+      Serial.print("Failed with state ");
+      Serial.print(client.state());
+      delay(2000);
+    }
+  }
+}
+
+void loop() {
+  for (int i = 1; i <= 100; i++) {
+    char payload[10];
+    sprintf(payload, "%d", i);
+    client.publish("your_MQTT_topic", payload);
+    delay(1000);
+  }
+}
